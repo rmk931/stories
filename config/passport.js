@@ -12,7 +12,7 @@ module.exports = function(passport) {
         callbackURL: process.env.CALLBACK_URL,
         proxy: true
     },
-        (accessToken, refreshToken, profile, cb) => {
+        (accessToken, refreshToken, profile, done) => {
             const image = profile.photos[0].value.substring(0, profile.photos[0].value.indexOf('?'));
             const newUser = {
                 googleID: profile.id,
@@ -35,4 +35,12 @@ module.exports = function(passport) {
             })
         }
     ));
+
+    passport.serializeUser((user, done) => {
+        done(null, user.id);
+    });
+    
+    passport.deserializeUser((id, done) => {
+        User.findById(id).then(user => done(null, user));
+    });
 }
