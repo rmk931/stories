@@ -4,14 +4,17 @@ const cookieParser = require('cookie-parser');
 const session = require('express-session');
 const passport = require('passport');
 const exphbs = require('express-handlebars');
+const path = require('path');
 
 require('dotenv').config();
 require('./models/user');
 require('./config/passport')(passport);
 
 const app = express();
+
 const auth = require('./routes/auth');
 const index = require('./routes/index');
+const stories = require('./routes/stories');
 
 app.engine('handlebars', exphbs({
     defaultLayout: 'main'
@@ -38,8 +41,11 @@ app.use((req, res, next) => {
     next();
 });
 
+app.use(express.static(path.join(__dirname, 'public')));
+
 app.use('/', index);
 app.use('/auth', auth);
+app.use('/stories', stories);
 
 const port = process.env.PORT || 5000;
 
