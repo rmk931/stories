@@ -5,18 +5,40 @@ const session = require('express-session');
 const passport = require('passport');
 const exphbs = require('express-handlebars');
 const path = require('path');
+const bodyParser = require('body-parser');
+const methodOverride = require('method-override');
+
 
 require('dotenv').config();
 require('./models/user');
+require('./models/story');
 require('./config/passport')(passport);
 
+const {
+    truncate,
+    stripTags,
+    formatDate,
+    select
+} = require('./helpers/hbs');
+
 const app = express();
+
+app.use(bodyParser.urlencoded({ extended: false }))
+app.use(bodyParser.json())
+ 
+app.use(methodOverride('_method'));
 
 const auth = require('./routes/auth');
 const index = require('./routes/index');
 const stories = require('./routes/stories');
 
 app.engine('handlebars', exphbs({
+    helpers: {
+        truncate: truncate,
+        stripTags: stripTags,
+        formatDate: formatDate,
+        select: select
+    },
     defaultLayout: 'main'
 }));
 app.set('view engine', 'handlebars');
@@ -25,8 +47,6 @@ mongoose.Promise = global.Promise;
 mongoose.connect(process.env.MONGO_URI)
     .then(() => console.log('MongoDB connected'))
     .catch(err => console.error(err));
-
-
 
 app.use(cookieParser());
 app.use(session({
