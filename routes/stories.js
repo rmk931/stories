@@ -20,9 +20,9 @@ router.get('/add', ensureAuthenticated, (req, res) => {
 router.post('/', ensureAuthenticated, (req, res) => {
     let allowComments;
     if (req.body.allowComments) {
-        allowComments = true;
-    } else {
         allowComments = false;
+    } else {
+        allowComments = true;
     };
 
     const newStory = {
@@ -41,7 +41,9 @@ router.post('/', ensureAuthenticated, (req, res) => {
 router.get('/show/:id', (req, res) => {
     Story.findOne({
         _id: req.params.id
-    }).populate('user').then(story => {
+    }).populate('user')
+    .populate('comments.commentUser')
+    .then(story => {
         res.render('stories/show', {
             story: story
         });
@@ -85,6 +87,22 @@ router.put('/:id', (req, res) => {
         story.save().then(story => {
             res.redirect(`/dashboard`)
         });
+    });
+});
+
+router.post('/comment/:id', ensureAuthenticated, (req, res) => {
+    Story.findOne({
+        _id: req.params.id
+    }).then(story => {
+        const newComment = {
+            commentBody: req.body.commentBody,
+            commentUser: req.user.id
+        }
+        story.comments.unshift(newComment);
+
+        story.save().then(story => {
+            res.redirect(`/stories/show/${story.id}`);
+        })
     });
 });
 
